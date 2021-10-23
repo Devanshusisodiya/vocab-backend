@@ -4,9 +4,9 @@ const UserCounter = require('../models/user_counter')
 
 // MOST BASIC REGISTRATION ROUTE FOR TESTING PURPOSE ONLY
 
-router.get('/getUser', async (req, res)=>{
-    const user = await User.findOne({name: req.body.name})
-    res.json(user)
+router.post('/getUser', async (req, res)=>{
+    const user = await User.findOne({username: req.body.username})
+    res.status(200).json(user)
 })
 
 router.get('/getAllUsers', async (req, res)=>{
