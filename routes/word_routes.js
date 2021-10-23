@@ -1,9 +1,20 @@
 const router = require('express').Router()
 const Word = require('../models/word')
 const User = require('../models/user')
+const UserCounter = require('../models/user_counter')
+
+router.get('/getAllWords', async (req, res)=>{
+    const words = await Word.find()
+    res.status(200).json({words: words})
+})
+
+router.post('/getWord', async (req, res)=>{
+    const word = await Word.findOne({word: req.body.word})
+    res.status(200).json({word: word})
+})
 
 router.post('/reg', async (req, res)=>{
-    const wordCheck = await User.findOne({name: req.body.name})
+    const wordCheck = await User.findOne({word: req.body.word})
     if(wordCheck === null){
         const word = new Word({
             word: req.body.word,   
@@ -22,18 +33,25 @@ router.post('/reg', async (req, res)=>{
 })
 
 router.patch('/fetchWordAndUpdateCounter', async (req, res)=>{
-    const user = await User.findOne({name: req.body.name})
+    const user = await UserCounter.findOne({username: req.body.username})
     const freeCounter = user.freeCounter
     const resetDate = user.resetDate
-    const date = req.body.date
-
-    const query = {name: req.body.name}
+    
+    // CURRENT DATE TO CHECK
+    let date = new Date()
+    date = date.toDateString()
+    // RESET DATE
+    let newResetDate = new Date()
+    newResetDate.setMonth(newResetDate.getMonth() + 1)
+    newResetDate = newResetDate.toDateString()
+    //  QUERY TO FIND TO USER
+    const query = {username: req.body.username}
     
     // REPLACE THE STATEMENT BELOW IN THE CONDITIONAL TO APPLY MONTHLY TIMINGS
     //(Date.parse(date) > Date.parse(resetDate)) 
-    if(date > resetDate){
-        const counterAndDateUpdateDoc = {freeCounter: 0, resetDate: date}
-        const result = await User.findOneAndUpdate(
+    if((Date.parse(date) > Date.parse(resetDate))){
+        const counterAndDateUpdateDoc = {freeCounter: 0, resetDate: newResetDate}
+        const result = await UserCounter.findOneAndUpdate(
             query,
             counterAndDateUpdateDoc,
             {
@@ -47,7 +65,7 @@ router.patch('/fetchWordAndUpdateCounter', async (req, res)=>{
             res.json({message: 'un-restricted data only'})
         }else{
             const counterUpdateDoc = {freeCounter: freeCounter + 1}
-            const result = await User.findOneAndUpdate(
+            const result = await UserCounter.findOneAndUpdate(
                 query,
                 counterUpdateDoc,
                 {
@@ -59,9 +77,12 @@ router.patch('/fetchWordAndUpdateCounter', async (req, res)=>{
     }
 })
 
-router.get('/getAllWords', async (req, res)=>{
-    const words = await Word.find()
-    res.status(200).json({words: words})
+
+router.get('/chdate', (req, res)=>{
+    let date = new Date()
+    date = date.toDateString()
+    res.json({date: date})
 })
+
 
 module.exports = router
