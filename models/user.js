@@ -4,8 +4,12 @@ const User = mongoose.Schema({
     name: {type: String, required: true},    
     username: {type: String, required: true},
     password: {type: String, required: true},
-    subscribed: {type: Boolean, default: false}
+    
+    freeCounter: {type: Number, default: 0},
+    subscribed: {type: Boolean, default: false},
+    subscriptionEnd : {type: String, default: ""}
 })
+// ADD SUBSCRIPTION END DATE
 
 
 module.exports = mongoose.model('users', User)
