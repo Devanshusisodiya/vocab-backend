@@ -16,33 +16,19 @@ router.get('/getAllUsers', async (req, res)=>{
 
 router.post('/reg', async (req, res)=>{
     const userCheck = await User.findOne({username: req.body.username})
-    if(userCheck === null){
-        
-        // RESET DATE FOR COUNTER RESET
-        let dateString = new Date()
-        dateString.setMonth(dateString.getMonth() + 1)
-        dateString = dateString.toDateString()
+    if(!userCheck){
         
         // NEW USER INSTANCE
         const user = new User({
             name: req.body.name,
             username: req.body.username,
-            password: req.body.password
-            
+            password: req.body.password    
         })
-        // INSTANCE FOR COUNTER MODEL
-        const userCounter = new UserCounter({
-            username: req.body.username,
-            freeCounter: 0,
-            resetDate: dateString
-        })
-    
+        
         try{
             const newUserInstance = await user.save()
-            const newUserCounterInstance = await userCounter.save()
             res.status(200).json({
-                user: newUserInstance,
-                user_counter: newUserCounterInstance
+                user: newUserInstance
             })
         }catch(error){
             res.status(210).json({message: error.message})
