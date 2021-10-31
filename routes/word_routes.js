@@ -1,7 +1,8 @@
 const router = require('express').Router()
 const Word = require('../models/word')
 const User = require('../models/user')
-const UserCounter = require('../models/user_counter')
+const { Query } = require('mongoose')
+const word = require('../models/word')
 
 router.get('/getAllWords', async (req, res)=>{
     const words = await Word.find()
@@ -33,55 +34,50 @@ router.post('/reg', async (req, res)=>{
 })
 
 router.patch('/fetchWordAndUpdateCounter', async (req, res)=>{
-    const user = await UserCounter.findOne({username: req.body.username})
-    const freeCounter = user.freeCounter
-    const resetDate = user.resetDate
-    
-    // CURRENT DATE TO CHECK
-    let date = new Date()
-    date = date.toDateString()
-    // RESET DATE
-    let newResetDate = new Date()
-    newResetDate.setMonth(newResetDate.getMonth() + 1)
-    newResetDate = newResetDate.toDateString()
-    //  QUERY TO FIND TO USER
+    // REQUIRED DATA
+    const wordQuery = {word: req.body.word}
+    const word = await Word.findOne(wordQuery)
     const query = {username: req.body.username}
     
-    // REPLACE THE STATEMENT BELOW IN THE CONDITIONAL TO APPLY MONTHLY TIMINGS
-    //(Date.parse(date) > Date.parse(resetDate)) 
-    if((Date.parse(date) > Date.parse(resetDate))){
-        const counterAndDateUpdateDoc = {freeCounter: 0, resetDate: newResetDate}
-        const result = await UserCounter.findOneAndUpdate(
-            query,
-            counterAndDateUpdateDoc,
+    // USER DATA
+    const user = await User.findOne(query)
+    const freeCounter = user.freeCounter
+    const subEnd = user.subscriptionEnd
+    
+    // CURRENT DATE TO CHECK
+    let currentDate = new Date()
+    currentDate = currentDate.toDateString()
+    
+    // CHECKING OF SUBSCRIPTION IS TO BE ENDED
+    if((Date.parse(currentDate) > Date.parse(subEnd))){
+        // SET SUBEND DATE TO EMPTY AGAIN AND SUBBED STATUS FALSE
+        const updateDoc = {
+            subscribed: false,
+            subscriptionEnd: ""
+        }
+        const updatedUser = await User.findOneAndUpdate(
+            query, updateDoc,
             {
                 useFindAndModify: false,
                 new: true
             })
-        
-        res.json({message: 'all data', updatedUserData: result})
+        // LOGGING AND RESPONDING
+        console.log(updatedUser)
+        res.json(updatedUser)
     }else{
-        if(freeCounter > 3){
-            res.json({message: 'un-restricted data only'})
+        // CHECK IF COUNTER IS LESS THAN LIMIT
+        // IF IT IS THEN SEND UNRESTRICTED RESPONSE
+        if(freeCounter < 3){
+            const updateDoc = {freeCounter: freeCounter + 1}
+            const updatedUser = await User.findOneAndUpdate(query, updateDoc)
+            console.log(updatedUser)
+            res.json({"updated user": updatedUser, "unrest data": word})
         }else{
-            const counterUpdateDoc = {freeCounter: freeCounter + 1}
-            const result = await UserCounter.findOneAndUpdate(
-                query,
-                counterUpdateDoc,
-                {
-                    useFindAndModify: false,
-                    new: true
-                })
-            res.json({message: "all data", updatedUserData: result})
+            // ELSE SEND RESTRICTED RESPONSE
+            res.json({"rest data": word.word})
         }
+
     }
-})
-
-
-router.get('/chdate', (req, res)=>{
-    let date = new Date()
-    date = date.toDateString()
-    res.json({date: date})
 })
 
 
