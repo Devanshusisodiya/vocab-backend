@@ -1,6 +1,5 @@
 const router = require('express').Router()
 const User = require('../models/user')
-const UserCounter = require('../models/user_counter')
 
 // MOST BASIC REGISTRATION ROUTE FOR TESTING PURPOSE ONLY
 
@@ -24,8 +23,9 @@ router.post('/reg', async (req, res)=>{
             username: req.body.username,
             password: req.body.password    
         })
-        
         try{
+
+            // SAVING NEW USER INSTANCE TO DATABASE
             const newUserInstance = await user.save()
             res.status(200).json({
                 user: newUserInstance
@@ -50,7 +50,6 @@ router.post('/login', async (req, res)=>{
             res.send("wrong password")
         }
     }
-    
 })
 
 module.exports = router
