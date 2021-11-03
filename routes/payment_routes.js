@@ -17,7 +17,6 @@ router.post('/orders', async (req, res)=>{
         res.json(order)
         console.log(order)
     })
-
 })
 
 module.exports = router
