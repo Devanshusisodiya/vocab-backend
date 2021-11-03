@@ -35,52 +35,79 @@ router.post('/reg', async (req, res)=>{
     }
 })
 
-router.patch('/fetchWordAndUpdateCounter', async (req, res)=>{
-    // REQUIRED DATA
-    const wordQuery = {word: req.body.word}
-    const word = await Word.findOne(wordQuery)
-    const query = {username: req.body.username}
-    
-    // USER DATA
-    const user = await User.findOne(query)
-    const freeCounter = user.freeCounter
-    const subEnd = user.subscriptionEnd
-    
-    // CURRENT DATE TO CHECK
-    let currentDate = new Date()
-    currentDate = currentDate.toDateString()
-    
-    // CHECKING OF SUBSCRIPTION IS TO BE ENDED
-    if((Date.parse(currentDate) > Date.parse(subEnd))){
-        // SET SUBEND DATE TO EMPTY AGAIN AND SUBBED STATUS FALSE
-        const updateDoc = {
-            subscribed: false,
-            subscriptionEnd: ""
-        }
-        const updatedUser = await User.findOneAndUpdate(
-            query, updateDoc,
-            {
-                useFindAndModify: false,
-                new: true
-            })
-        // LOGGING AND RESPONDING
-        console.log(updatedUser)
-        res.json(updatedUser)
-    }else{
-        // CHECK IF COUNTER IS LESS THAN LIMIT
-        // IF IT IS THEN SEND UNRESTRICTED RESPONSE
-        if(freeCounter < 3){
-            const updateDoc = {freeCounter: freeCounter + 1}
-            const updatedUser = await User.findOneAndUpdate(query, updateDoc)
-            console.log(updatedUser)
-            res.json({"updated user": updatedUser, "unrest data": word})
-        }else{
-            // ELSE SEND RESTRICTED RESPONSE
-            res.json({"rest data": word.word})
-        }
+router.post('/freeWordFetch', async (req, res)=>{
+    const wordData = await Word.findOne({word: req.body.word})
+    const user = await User.findOne({username: req.body.username})
 
+    const freeCounter = user.freeCounter 
+
+    if(freeCounter < 10){
+        // SEND UNRESTRICTED DATA AND PATCH FREECOUNTER VALUE
+        const updateDoc = {freeCounter: freeCounter + 1}
+        const updatedUser = await User.findOneAndUpdate(
+            {username: req.body.username},
+            updateDoc,
+            {
+                new: true,
+                useFindAndModify: false
+            }
+        )
+        console.log("sending unrestricted data")
+        console.log(updatedUser)
+        res.json({images: wordData.images, video: wordData.video, restricted: false})
+    }else{
+        // SEND RESTRICTED DATA
+        console.log("sending restricted data")
+        res.json({restricted: true})
     }
 })
+
+// router.patch('/fetchWordAndUpdateCounter', async (req, res)=>{
+//     // REQUIRED DATA
+//     const wordQuery = {word: req.body.word}
+//     const word = await Word.findOne(wordQuery)
+//     const query = {username: req.body.username}
+    
+//     // USER DATA
+//     const user = await User.findOne(query)
+//     const freeCounter = user.freeCounter
+//     const subEnd = user.subscriptionEnd
+    
+//     // CURRENT DATE TO CHECK
+//     let currentDate = new Date()
+//     currentDate = currentDate.toDateString()
+    
+//     // CHECKING OF SUBSCRIPTION IS TO BE ENDED
+//     if((Date.parse(currentDate) > Date.parse(subEnd))){
+//         // SET SUBEND DATE TO EMPTY AGAIN AND SUBBED STATUS FALSE
+//         const updateDoc = {
+//             subscribed: false,
+//             subscriptionEnd: ""
+//         }
+//         const updatedUser = await User.findOneAndUpdate(
+//             query, updateDoc,
+//             {
+//                 useFindAndModify: false,
+//                 new: true
+//             })
+//         // LOGGING AND RESPONDING
+//         console.log(updatedUser)
+//         res.json(updatedUser)
+//     }else{
+//         // CHECK IF COUNTER IS LESS THAN LIMIT
+//         // IF IT IS THEN SEND UNRESTRICTED RESPONSE
+//         if(freeCounter < 3){
+//             const updateDoc = {freeCounter: freeCounter + 1}
+//             const updatedUser = await User.findOneAndUpdate(query, updateDoc)
+//             console.log(updatedUser)
+//             res.json({"updated user": updatedUser, "unrest data": word})
+//         }else{
+//             // ELSE SEND RESTRICTED RESPONSE
+//             res.json({"rest data": word.word})
+//         }
+
+//     }
+// })
 
 
 module.exports = router
