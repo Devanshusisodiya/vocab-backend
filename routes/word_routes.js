@@ -15,11 +15,13 @@ router.post('/getWord', async (req, res)=>{
 })
 
 router.post('/reg', async (req, res)=>{
-    const wordCheck = await User.findOne({word: req.body.word})
+    const wordCheck = await Word.findOne({word: req.body.word})
     if(wordCheck === null){
         const word = new Word({
             word: req.body.word,   
-            meaning: req.body.meaning
+            meaning: req.body.meaning,
+            images: req.body.images,
+            video: req.body.video
         })
     
         try{
