@@ -10,8 +10,8 @@ router.post('/orders', async (req, res)=>{
         receipt: "order_rcptid_11"
     }
     const instance = new Razorpay({
-        key_id: process.env.RAZORPAY_KEY_ID,
-        key_secret: process.env.RAZORPAY_KEY_SECRET
+        key_id: rzp_test_pNPqdICL2ewdAt,
+        key_secret: wP9YDPPcsuITf0VYeTtrM6rw
     })
     instance.orders.create(options, (err, order)=>{
         res.json(order)

@@ -1,6 +1,6 @@
 // NECESSARY IMPORTS
 require('dotenv').config()
-const PORT = process.env.PORT
+const PORT = 8000
 
 
 const express = require('express')
@@ -27,7 +27,7 @@ app.use('/payments', paymentRoutes)
 
 // CONNECTING TO DATABASE
 mongoose.connect(
-    process.env.DATABASE_URI,
+    "mongodb+srv://test_user:test_password@cluster0.vwzh7.mongodb.net/vocab?retryWrites=true&w=majority",
     {
         useNewUrlParser: true,
         useUnifiedTopology: true 
